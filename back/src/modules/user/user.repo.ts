@@ -50,9 +50,8 @@ export class UserRepo implements UserDAO {
   async deleteAccount(id: string): Promise<void> {
     await this.model.findByIdAndDelete(id);
   }
-  async changePassword(newPassword: string, id: string): Promise<void> {
-    const user = await this.model.findById(id);
-    if (!user) throw new Error("user is not found");
+
+  async updatePassword(user: any, newPassword: string): Promise<void> {
     user.password = newPassword;
     await user.save();
   }
