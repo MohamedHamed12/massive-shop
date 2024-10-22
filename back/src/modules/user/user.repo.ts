@@ -22,7 +22,7 @@ export class UserRepo implements UserDAO {
     const user = await this.model.findOneAndUpdate(
       { email },
       { verified: true },
-      { new: true }
+      { new: true },
     );
     if (!user) throw new Error("user is not found");
   }
@@ -49,6 +49,12 @@ export class UserRepo implements UserDAO {
 
   async deleteAccount(id: string): Promise<void> {
     await this.model.findByIdAndDelete(id);
+  }
+  async changePassword(newPassword: string, id: string): Promise<void> {
+    const user = await this.model.findById(id);
+    if (!user) throw new Error("user is not found");
+    user.password = newPassword;
+    await user.save();
   }
 }
 

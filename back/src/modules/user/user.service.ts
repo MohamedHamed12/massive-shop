@@ -21,16 +21,15 @@ export class UserService implements UserDAO {
       const verifyToken = jwt.sign(
         { email: user.email },
         process.env.JWT_SECRET as string,
-        { expiresIn: process.env.EXPIRES_IN_TOKEN }
+        { expiresIn: process.env.EXPIRES_IN_TOKEN },
       );
 
       const emailToSend = new EmailService(
         user.email,
         user.firstname + " " + user.lastname,
-        verifyToken
+        verifyToken,
       );
       try {
-
         await emailToSend.sendEmail();
       } catch (error) {
         console.log("error", error);
@@ -46,7 +45,7 @@ export class UserService implements UserDAO {
     try {
       const verified: VerifyTokenPayload = jwt.verify(
         token,
-        process.env.JWT_SECRET as string
+        process.env.JWT_SECRET as string,
       ) as VerifyTokenPayload;
 
       await this.service.verifyEmail(verified?.email);
@@ -65,14 +64,14 @@ export class UserService implements UserDAO {
       process.env.JWT_SECRET as string,
       {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
-      }
+      },
     );
     const refreshToken = jwt.sign(
       { _id: loggedUser._id },
       process.env.JWT_SECRET_REFRESH as string,
       {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
-      }
+      },
     );
 
     loggedUser._doc.accessToken = accessToken;
@@ -90,20 +89,38 @@ export class UserService implements UserDAO {
     updatedValuesArr = [...new Set(updatedValuesArr)];
 
     const isValidUpdate = updatedValuesArr.every((key) =>
-      validValues.includes(key)
+      validValues.includes(key),
     );
     console.log(validValues, updatedValuesArr);
 
     if (!isValidUpdate) {
       throw new Error(
-        "Invalid fields in the update request! you can only update firstname, lastname and address"
+        "Invalid fields in the update request! you can only update firstname, lastname and address",
       );
     }
 
     await this.service.updateUser(user, updatedValues);
   }
 
+  async updatePassword(
+    user: UserType,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) throw new Error("old password is wrong");
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 8);
+
+    await this.service.updatePassword(user, hashedNewPassword);
+  }
+
   async deleteAccount(id: string): Promise<void> {
     await this.service.deleteAccount(id);
+  }
+  async changePassword(password: string, id: string): Promise<void> {
+    password = await bcrypt.hash(password, 8);
+    await this.service.changePassword(password, id);
   }
 }
