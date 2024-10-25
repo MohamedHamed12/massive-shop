@@ -66,4 +66,14 @@ export class UserController {
       res.send({ message: "Password has been updated" });
     },
   );
+  public addMobileNumber = errorHandler(
+    async (req: AuthRequest, res: Response) => {
+      await this.service.updateUser(req.user._id, {
+        mobileNumber,
+        ...otherFields,
+      });
+
+      res.send({ message: "User information has been updated" });
+    },
+  );
 }
