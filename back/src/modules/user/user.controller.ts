@@ -1,5 +1,4 @@
 import { Request, Response, Router } from "express";
-import { UserDAO } from "../../utils/types/DAO";
 import { UserService } from "./user.service";
 import { AuthRequest, UserType } from "../../utils/types/types";
 import { errorHandler } from "../../utils/helper";
@@ -10,8 +9,7 @@ import { userSchema } from "./user.validation"; // Adjust import based on your s
 import { formatValidationErrors } from "../../utils/errorFormatter"; // Adjust import based on your structure
 
 export class UserController {
-  private router = Router();
-  private service: UserService;
+  public service: UserService;
   constructor(service: UserService) {
     this.service = service;
   }
@@ -30,31 +28,32 @@ export class UserController {
     });
   });
 
-  private verifyEmail = errorHandler(async (req: Request, res: Response) => {
+  public verifyEmail = errorHandler(async (req: Request, res: Response) => {
     await this.service.verifyEmail(req.params.token);
     res.send({
       message: "Congratulations! Your Account has been verified",
     });
   });
 
-  private loginUser = errorHandler(async (req: Request, res: Response) => {
+  public loginUser = errorHandler(async (req: Request, res: Response) => {
     if (!req.body.email || !req.body.password)
       throw new Error("please provide email and password");
     const user = await this.service.loginUser(req.body);
     res.send(user);
   });
 
-  private getUser = errorHandler(async (req: AuthRequest, res: Response) => {
+  public getUser = errorHandler(async (req: AuthRequest, res: Response) => {
     res.send(req.user);
   });
 
-  private refreshToken = errorHandler(
+  public refreshToken = errorHandler(
     async (req: AuthRequest, res: Response) => {
       res.send({ accessToken: req.accessToken });
     },
+    },
   );
 
-  private updateInfo = errorHandler(async (req: AuthRequest, res: Response) => {
+  public updateInfo = errorHandler(async (req: AuthRequest, res: Response) => {
     await this.service.updateUser(req.user, req.body);
 
     if (Object.keys(req.body).length === 0)
@@ -62,7 +61,7 @@ export class UserController {
     res.send({ message: "User has been updated" });
   });
 
-  private deleteAccount = errorHandler(
+  public deleteAccount = errorHandler(
     async (req: AuthRequest, res: Response) => {
       await this.service.deleteAccount(req.user?._id);
       res.send({ message: "Account has been deleted" });
@@ -93,18 +92,12 @@ export class UserController {
     }
   );
 
-  private updatePassword = errorHandler(
+  public updatePassword = errorHandler(
     async (req: AuthRequest, res: Response) => {
-      if (!req.body.newPassword || !req.body.oldPassword)
-        throw new Error("Please provide old and new password");
-
-      if (req.body.newPassword === req.body.oldPassword)
-        throw new Error("password is the same");
-
       await this.service.updatePassword(
         req.user,
         req.body.oldPassword,
-        req.body.newPassword
+        req.body.newPassword,
       );
 
       res.send({ message: "Password has been updated" });
